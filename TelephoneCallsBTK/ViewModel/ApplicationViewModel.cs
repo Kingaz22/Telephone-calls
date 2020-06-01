@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -104,9 +105,7 @@ namespace TelephoneCallsBTK.ViewModel
             {
                 // ignored
             }
-
             ListPhone = listPhone;
-
             ReportNumbers = new List<ReportNumber>();
             StoryNumbers = new List<StoryNumber>();
             StoryNumbersFirst = new List<StoryNumber>();
@@ -269,6 +268,16 @@ namespace TelephoneCallsBTK.ViewModel
         });
         #endregion
 
+
+        #region Открыть справку
+        private RelayCommand _openHelp;
+        public RelayCommand OpenHelp => _openHelp ??= new RelayCommand(obj =>
+        {
+            Process.Start((Environment.CurrentDirectory + "\\123.chm").Replace("\\", "/"));
+        });
+        #endregion
+
+
         #region Очиcтка данных
         private RelayCommand _clearData;
         public RelayCommand ClearData => _clearData ??= new RelayCommand(obj =>
@@ -277,6 +286,7 @@ namespace TelephoneCallsBTK.ViewModel
             {
                 StoryNumbers = new List<StoryNumber>();
                 Names = new List<string>();
+                ReportNumbers = new List<ReportNumber>();
                 CountNumbers = 0;
             }
             catch (Exception ex)

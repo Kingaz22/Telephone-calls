@@ -8,10 +8,40 @@
         Title="Телефонные переговоры" Height="700" Width="650">
     <Grid>
 
-        <Menu />
+        <Menu Height="25" VerticalAlignment="Top">
+            <MenuItem Header="Файл">
+                <MenuItem Header="Загрузить данные" Command="{Binding OpenCommand}" >
+                    <MenuItem.Icon>
+                        <Image Source="Icons/plus.png"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Очистить данные" Command="{Binding ClearData}">
+                    <MenuItem.Icon>
+                        <Image Source="Icons/minus.png"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Экспорт отчёта" Command="{Binding ExportData}">
+                    <MenuItem.Icon>
+                        <Image Source="Icons/export.png"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Справка" >
+                <MenuItem Header="Открыть справку" Command="{Binding OpenHelp}" >
+                    <MenuItem.Icon>
+                        <Image Source="Icons/help.png"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="О программе" Command="{Binding Opd}" >
+                    <MenuItem.Icon>
+                        <Image Source="Icons/information-variant.png"></Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
 
 
-        <TabControl>
+        <TabControl Margin="0,20,0,0">
             <TabItem Header="Главная">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -25,11 +55,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel  Grid.Column="0" Grid.Row="0">
-                        <Button Content="Загрузить данные" Command="{Binding OpenCommand}" Margin="5" />
-                        <Button Content="Очистить данные" Command="{Binding ClearData}" Margin="5" />
-                        <Button Content="ntcn" Margin="5" Command="{Binding ExportData}"/>
-
-
+                        
                         <Button Content="Сформировать отчет"   Command="{Binding ReportCommand}" Margin="5" />
                         <Label Content="{Binding CountNumbers}" HorizontalAlignment="Left" />
                     </StackPanel>
