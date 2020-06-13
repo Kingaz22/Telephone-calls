@@ -8,7 +8,7 @@
         Title="Телефонные переговоры" Height="700" Width="650">
     <Grid>
 
-        <Menu Height="25" VerticalAlignment="Top">
+        <Menu Height="25" VerticalAlignment="Top" >
             <MenuItem Header="Файл">
                 <MenuItem Header="Загрузить данные" Command="{Binding OpenCommand}" >
                     <MenuItem.Icon>
@@ -32,7 +32,7 @@
                         <Image Source="Icons/help.png"></Image>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="О программе" Command="{Binding Opd}" >
+                <MenuItem Header="О программе" Command="{Binding OpenAbout}" >
                     <MenuItem.Icon>
                         <Image Source="Icons/information-variant.png"></Image>
                     </MenuItem.Icon>
@@ -55,19 +55,21 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel  Grid.Column="0" Grid.Row="0">
-                        
+
                         <Button Content="Сформировать отчет"   Command="{Binding ReportCommand}" Margin="5" />
-                        <Label Content="{Binding CountNumbers}" HorizontalAlignment="Left" />
+                        
+                        <StackPanel Orientation="Horizontal" >
+                            <Label Content="Загруженно звонков: " HorizontalAlignment="Left" />
+                            <Label Content="{Binding CountNumbers}" HorizontalAlignment="Left" />
+                        </StackPanel>
+                        
                     </StackPanel>
 
                     <StackPanel  Grid.Column="1" Grid.Row="0">
                         <TextBox Name="TextBoxPhone" Margin="5" />
                         <Button Content="Добавить номер" Margin="5" Command="{Binding AddPhone}" CommandParameter="{Binding ElementName=TextBoxPhone}" />
                         <Button Content="Удалить номер" Margin="5" Command="{Binding DeletePhone}" CommandParameter="{Binding ElementName=ListBoxPhone}" />
-                        <StackPanel Name="stackPanelRadioButton" Margin="5">
-                            <RadioButton GroupName="Filter" Content="Стандартный фильтр" IsChecked="True" Command="{Binding RadioButton}" CommandParameter="{Binding ElementName=stackPanelRadioButton}"  />
-                            <RadioButton Name="RadioButton" GroupName="Filter" Content="Настраиваемый фильтр" Command="{Binding RadioButton}" CommandParameter="{Binding ElementName=stackPanelRadioButton}"/>
-                        </StackPanel>
+                       
                     </StackPanel>
                     <ListBox Name="ListBoxPhone" ItemsSource="{Binding ListPhone}" Grid.Column="2" Grid.Row="0"
                              SelectionMode="Multiple" >
@@ -127,22 +129,6 @@
                             <DataGridTextColumn Header="Стоимость" Binding="{Binding Path=Coast}"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Настройки фильтрации" IsEnabled="{Binding ElementName=RadioButton, Path=IsChecked}">
-                <Grid>
-                    <Button Content="Применить фильтр" Height="20" Width="150" Command="{Binding Sort}" CommandParameter="{Binding ElementName=Box}" Margin="5" />
-
-
-
-                    <ListBox Name="Box" Grid.Column="0" ItemsSource="{Binding Names}"  Margin="422,0,0,217" IsEnabled="{Binding ElementName=RadioButton, Path=IsChecked}"
-                             SelectionMode="Multiple" >
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" />
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
                 </Grid>
             </TabItem>
         </TabControl>

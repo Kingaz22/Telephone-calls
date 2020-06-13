@@ -29,6 +29,7 @@ namespace TelephoneCallsBTK.ViewModel
                 _ => d,
             };
         }
+
         /// <summary>
         /// Фильтр телефонного номера
         /// </summary>
@@ -38,6 +39,7 @@ namespace TelephoneCallsBTK.ViewModel
         {
             return $"{Convert.ToInt32(p.Remove(0, 3)):##-##-##}";
         }
+
         /// <summary>
         /// Формирование строки дат
         /// </summary>
@@ -59,6 +61,7 @@ namespace TelephoneCallsBTK.ViewModel
             }
             return str.Length >= 2 ? str.Remove(str.Length - 2) : str;
         }
+
         /// <summary>
         /// Фильтр даты
         /// </summary>
@@ -70,6 +73,7 @@ namespace TelephoneCallsBTK.ViewModel
             DateTime date = new DateTime(y, m, 01);
             return date.ToString("MMMM yyyy");
         }
+
         /// <summary>
         /// Экспорт в Excel
         /// </summary>
@@ -120,5 +124,7 @@ namespace TelephoneCallsBTK.ViewModel
             }
             excelApp.Visible = true;
         }
+
+
     }
 }

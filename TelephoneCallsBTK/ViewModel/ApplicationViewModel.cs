@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using TelephoneCallsBTK.Model;
+using TelephoneCallsBTK.Window;
 
 namespace TelephoneCallsBTK.ViewModel
 {
@@ -15,10 +16,11 @@ namespace TelephoneCallsBTK.ViewModel
 
         IFileService fileService;
         IDialogService dialogService;
-        public bool StFilter { get; set; }
-
+        
         private IEnumerable<ReportNumber> _reportNumbers;
-
+        /// <summary>
+        /// Отчет
+        /// </summary>
         public IEnumerable<ReportNumber> ReportNumbers
         {
             get => _reportNumbers;
@@ -30,6 +32,9 @@ namespace TelephoneCallsBTK.ViewModel
         }
 
         private int _countNumbers;
+        /// <summary>
+        /// Количество загруженных строк
+        /// </summary>
         public int CountNumbers
         {
             get => _countNumbers;
@@ -41,6 +46,9 @@ namespace TelephoneCallsBTK.ViewModel
         }
 
         private IEnumerable<StoryNumber> _storyNumbersFirst;
+        /// <summary>
+        /// Первоначальные данные из файла
+        /// </summary>
         public IEnumerable<StoryNumber> StoryNumbersFirst
         {
             get => _storyNumbersFirst;
@@ -52,6 +60,9 @@ namespace TelephoneCallsBTK.ViewModel
         }
 
         private IEnumerable<StoryNumber> _storyNumbers;
+        /// <summary>
+        /// Отфильтрованный список
+        /// </summary>
         public IEnumerable<StoryNumber> StoryNumbers
         {
             get => _storyNumbers;
@@ -63,6 +74,9 @@ namespace TelephoneCallsBTK.ViewModel
         }
 
         private IEnumerable<string> _names;
+        /// <summary>
+        /// Список наименований услуг
+        /// </summary>
         public IEnumerable<string> Names
         {
             get => _names;
@@ -74,6 +88,9 @@ namespace TelephoneCallsBTK.ViewModel
         }
 
         private IEnumerable<string> _listPhone;
+        /// <summary>
+        /// Список телефонов
+        /// </summary>
         public IEnumerable<string> ListPhone
         {
             get => _listPhone;
@@ -88,10 +105,8 @@ namespace TelephoneCallsBTK.ViewModel
         {
             this.dialogService = dialogService;
             this.fileService = fileService;
-
             Names = new List<string>();
             List<string> listPhone = new List<string>();
-            StFilter = true;
             try
             {
                 using var sr = new StreamReader("phone.txt");
@@ -135,8 +150,6 @@ namespace TelephoneCallsBTK.ViewModel
                             .ToList();
                         foreach (var month in monthList)
                         {
-
-
                             List<Phone> xPhones = new List<Phone>();
                             foreach (var phone in ListPhone)
                             {
@@ -146,7 +159,6 @@ namespace TelephoneCallsBTK.ViewModel
                                     .Where(x => Convert.ToDateTime(x.DateStartTime).Year == year.Key && Convert.ToDateTime(x.DateStartTime).Month == month.Key)
                                     .GroupBy(x => x.Direction)
                                     .ToList();
-
                                 List<NameList> nameList = new List<NameList>();
                                 foreach (var direction in directionList)
                                 {
@@ -170,7 +182,6 @@ namespace TelephoneCallsBTK.ViewModel
                                 };
                                 xPhones.Add(xPhone);
                             }
-
                             ReportNumber xReportNumber = new ReportNumber
                             {
                                 MonthYear = MyFunc.MonthYear(month.Key, year.Key),
@@ -212,16 +223,12 @@ namespace TelephoneCallsBTK.ViewModel
             {
                 if (dialogService.OpenFileDialog() == true)
                 {
-                    //var storyNumbers = StoryNumbersFirst.ToList();
                     StoryNumbers = StoryNumbersFirst = fileService.Open(dialogService.FilePath)
                         .Union(StoryNumbersFirst, new StoryNumberClassComparer())
                         .Where(x => x.Phone != "Телефон")
                         .Where(x => x.Name != "Итого сумма начислений по абонентскому номеру:");
 
 
-                    //var storyNumbers = StoryNumbersFirst.ToList();
-
-                    //StoryNumbers = storyNumbers;
                     if (ListPhone.Count() != 0)
                     {
                         List<StoryNumber> storyList = new List<StoryNumber>();
@@ -231,20 +238,11 @@ namespace TelephoneCallsBTK.ViewModel
                         }
                         StoryNumbers = storyList;
                     }
-
-                    if (StFilter)
-                    {
-                        StoryNumbers = StoryNumbers.Where(x =>
-                                x.Name == "Исходящее соединение на мобильную сеть" ||
-                                x.Name == "Исходящее междугородное соединение в пределах области" ||
-                                x.Name == "Исходящее междугородное соединение в пределах республики").ToList();
-                    }
-                    else
-                    {
-
-
-
-                    }
+                    
+                    StoryNumbers = StoryNumbers.Where(x =>
+                            x.Name == "Исходящее соединение на мобильную сеть" ||
+                            x.Name == "Исходящее междугородное соединение в пределах области" ||
+                            x.Name == "Исходящее междугородное соединение в пределах республики").ToList();
 
                     CountNumbers = StoryNumbers.Count();
 
@@ -267,17 +265,26 @@ namespace TelephoneCallsBTK.ViewModel
             }
         });
         #endregion
-
-
+        
         #region Открыть справку
         private RelayCommand _openHelp;
         public RelayCommand OpenHelp => _openHelp ??= new RelayCommand(obj =>
         {
-            Process.Start((Environment.CurrentDirectory + "\\123.chm").Replace("\\", "/"));
+            Process.Start((Environment.CurrentDirectory + "\\App_Data\\help.chm").Replace("\\", "/"));
         });
         #endregion
 
+        #region Открыть окно о программе
+        private RelayCommand _openAbout;
+        public RelayCommand OpenAbout => _openAbout ??= new RelayCommand(obj =>
+        {
+            
+            About about = new About();
+            about.Show();
 
+        });
+        #endregion
+        
         #region Очиcтка данных
         private RelayCommand _clearData;
         public RelayCommand ClearData => _clearData ??= new RelayCommand(obj =>
@@ -288,25 +295,6 @@ namespace TelephoneCallsBTK.ViewModel
                 Names = new List<string>();
                 ReportNumbers = new List<ReportNumber>();
                 CountNumbers = 0;
-            }
-            catch (Exception ex)
-            {
-                dialogService.ShowMessage("Ошибка: " + ex.Message);
-            }
-        });
-        #endregion
-
-        #region Фильтрация
-        private RelayCommand _sort;
-        public RelayCommand Sort => _sort ??= new RelayCommand(obj =>
-        {
-            try
-            {
-                var item = obj as ListBox;
-                foreach (var i in item.SelectedItems)
-                {
-                    StoryNumbers = StoryNumbers.Where(x => x.Name != i.ToString());
-                }
             }
             catch (Exception ex)
             {
@@ -367,20 +355,6 @@ namespace TelephoneCallsBTK.ViewModel
         });
         #endregion
 
-        #region Установка стандартных настроек фильтрации
-        private RelayCommand _radioButton;
-        public RelayCommand RadioButton => _radioButton ??= new RelayCommand(obj =>
-        {
-            try
-            {
-                StFilter = (bool)((obj as StackPanel).Children[0] as RadioButton).IsChecked;
-            }
-            catch (Exception ex)
-            {
-                dialogService.ShowMessage("Ошибка: " + ex.Message);
-            }
-        });
-        #endregion
     }
 
     #region Класс сравнения StoryNumber
