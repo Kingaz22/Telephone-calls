@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Deployment.Application;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -24,7 +25,7 @@ namespace TelephoneCallsBTK.Window
         public About()
         {
             InitializeComponent();
-            Block.Text = "Версия сборки: " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            Block.Text = "Версия сборки: " + ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
