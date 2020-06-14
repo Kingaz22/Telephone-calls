@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using TelephoneCallsBTK.Model;
 using TelephoneCallsBTK.Window;
 
@@ -11,6 +13,7 @@ namespace TelephoneCallsBTK.ViewModel
 {
     public class ApplicationViewModel : BaseVieModel
     {
+
         IFileService fileService;
         IDialogService dialogService;
         
@@ -69,7 +72,21 @@ namespace TelephoneCallsBTK.ViewModel
                 OnPropertyChanged(nameof(StoryNumbers));
             }
         }
-        
+
+        private IEnumerable<string> _names;
+        /// <summary>
+        /// Список наименований услуг
+        /// </summary>
+        public IEnumerable<string> Names
+        {
+            get => _names;
+            set
+            {
+                _names = value;
+                OnPropertyChanged(nameof(Names));
+            }
+        }
+
         private IEnumerable<string> _listPhone;
         /// <summary>
         /// Список телефонов
@@ -88,6 +105,7 @@ namespace TelephoneCallsBTK.ViewModel
         {
             this.dialogService = dialogService;
             this.fileService = fileService;
+            Names = new List<string>();
             List<string> listPhone = new List<string>();
             try
             {
@@ -117,7 +135,62 @@ namespace TelephoneCallsBTK.ViewModel
                 if (ListPhone.Count() == 0) throw new Exception("Нету номеров");
                 else
                 {
-                    ReportNumbers = MyFunc.ReportNumbers(ListPhone, StoryNumbersFirst);
+                    List<ReportNumber> report = new List<ReportNumber>();
+
+                    var yearList = StoryNumbersFirst
+                            .Where(x => x.Name != "Исходящее местное соединение")
+                            .GroupBy(x => Convert.ToDateTime(x.DateStartTime).Year)
+                            .ToList();
+                    foreach (var year in yearList)
+                    {
+                        var monthList = StoryNumbersFirst
+                            .Where(x => x.Name != "Исходящее местное соединение")
+                            .Where(x => Convert.ToDateTime(x.DateStartTime).Year == year.Key)
+                            .GroupBy(x => Convert.ToDateTime(x.DateStartTime).Month)
+                            .ToList();
+                        foreach (var month in monthList)
+                        {
+                            List<Phone> xPhones = new List<Phone>();
+                            foreach (var phone in ListPhone)
+                            {
+                                var directionList = StoryNumbersFirst
+                                    .Where(x => x.Phone == phone && x.Name != "Исходящее местное соединение")
+                                    .Where(x => x.Direction != "")
+                                    .Where(x => Convert.ToDateTime(x.DateStartTime).Year == year.Key && Convert.ToDateTime(x.DateStartTime).Month == month.Key)
+                                    .GroupBy(x => x.Direction)
+                                    .ToList();
+                                List<NameList> nameList = new List<NameList>();
+                                foreach (var direction in directionList)
+                                {
+                                    var dayList = StoryNumbersFirst
+                                        .Where(x => x.Phone == phone && x.Name != "Исходящее местное соединение")
+                                        .Where(x => Convert.ToDateTime(x.DateStartTime).Year == year.Key && Convert.ToDateTime(x.DateStartTime).Month == month.Key)
+                                        .Where(x => x.Direction == direction.Key && x.Direction != "")
+                                        .GroupBy(x => Convert.ToDateTime(x.DateStartTime).Day)
+                                        .ToList();
+                                    NameList xNameList = new NameList
+                                    {
+                                        Name = MyFunc.Direction(direction.Key),
+                                        Dates = MyFunc.LineDate(dayList)
+                                    };
+                                    nameList.Add(xNameList);
+                                }
+                                Phone xPhone = new Phone
+                                {
+                                    NamePhone = MyFunc.Phone(phone),
+                                    NameList = nameList
+                                };
+                                xPhones.Add(xPhone);
+                            }
+                            ReportNumber xReportNumber = new ReportNumber
+                            {
+                                MonthYear = MyFunc.MonthYear(month.Key, year.Key),
+                                Phones = xPhones
+                            };
+                            report.Add(xReportNumber);
+                        }
+                    }
+                    ReportNumbers = report;
                 }
             }
             catch (Exception ex)
@@ -150,14 +223,38 @@ namespace TelephoneCallsBTK.ViewModel
             {
                 if (dialogService.OpenFileDialog() == true)
                 {
-                    StoryNumbersFirst = fileService.Open(dialogService.FilePath)
+                    StoryNumbers = StoryNumbersFirst = fileService.Open(dialogService.FilePath)
                         .Union(StoryNumbersFirst, new StoryNumberClassComparer())
                         .Where(x => x.Phone != "Телефон")
                         .Where(x => x.Name != "Итого сумма начислений по абонентскому номеру:");
+
+
+                    if (ListPhone.Count() != 0)
+                    {
+                        List<StoryNumber> storyList = new List<StoryNumber>();
+                        foreach (var i in ListPhone)
+                        {
+                            storyList = StoryNumbersFirst.Where(x => x.Phone == i).Concat(storyList).ToList();
+                        }
+                        StoryNumbers = storyList;
+                    }
                     
-                    StoryNumbers = MyFunc.FirstSort(ListPhone, StoryNumbersFirst);
+                    StoryNumbers = StoryNumbers.Where(x =>
+                            x.Name == "Исходящее соединение на мобильную сеть" ||
+                            x.Name == "Исходящее междугородное соединение в пределах области" ||
+                            x.Name == "Исходящее междугородное соединение в пределах республики").ToList();
 
                     CountNumbers = StoryNumbers.Count();
+
+                    #region Формирование списка наименований услуг
+                    var nameList = Names.ToList();
+                    foreach (var x in StoryNumbersFirst.GroupBy(x => x.Name))
+                    {
+                        if (nameList.Count(a => a == x.Key) == 0)
+                            nameList.Add(x.Key);
+                    }
+                    Names = nameList;
+                    #endregion
 
                     dialogService.ShowMessage("Файл загружен");
                 }
@@ -177,12 +274,14 @@ namespace TelephoneCallsBTK.ViewModel
         });
         #endregion
 
-        #region Открыть окно "О программе"
+        #region Открыть окно о программе
         private RelayCommand _openAbout;
         public RelayCommand OpenAbout => _openAbout ??= new RelayCommand(obj =>
         {
+            
             About about = new About();
             about.Show();
+
         });
         #endregion
         
@@ -193,8 +292,8 @@ namespace TelephoneCallsBTK.ViewModel
             try
             {
                 StoryNumbers = new List<StoryNumber>();
+                Names = new List<string>();
                 ReportNumbers = new List<ReportNumber>();
-                StoryNumbersFirst = new List<StoryNumber>();
                 CountNumbers = 0;
             }
             catch (Exception ex)
@@ -222,9 +321,6 @@ namespace TelephoneCallsBTK.ViewModel
                         using var sw = new StreamWriter("phone.txt", false, System.Text.Encoding.Default);
                         foreach (var i in ListPhone)
                             sw.WriteLine(i);
-
-                        StoryNumbers = MyFunc.FirstSort(ListPhone, StoryNumbersFirst);
-                        CountNumbers = StoryNumbers.Count();
                     }
                     else throw new Exception("Такой номер уже есть в списке");
                 }
@@ -251,8 +347,6 @@ namespace TelephoneCallsBTK.ViewModel
                 using var sw = new StreamWriter("phone.txt", false, System.Text.Encoding.Default);
                 foreach (var i in ListPhone)
                     sw.WriteLine(i);
-                StoryNumbers = MyFunc.FirstSort(ListPhone, StoryNumbersFirst);
-                CountNumbers = StoryNumbers.Count();
             }
             catch (Exception ex)
             {
