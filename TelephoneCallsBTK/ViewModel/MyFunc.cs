@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TelephoneCallsBTK.Model;
-using Excel = Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Interop.Excel;
 
 namespace TelephoneCallsBTK.ViewModel
@@ -123,6 +120,95 @@ namespace TelephoneCallsBTK.ViewModel
                 i++;
             }
             excelApp.Visible = true;
+        }
+       
+        /// <summary>
+        /// Начальная фильтрация
+        /// </summary>
+        /// <param name="ListPhone">Список номеров</param>
+        /// <param name="StoryNumbersFirst">Первоначальный список</param>
+        /// <returns></returns>
+        public static IEnumerable<StoryNumber> FirstSort(IEnumerable<string> ListPhone, IEnumerable<StoryNumber> StoryNumbersFirst)
+        {
+            if (ListPhone.Count() != 0)
+            {
+                List<StoryNumber> storyList = new List<StoryNumber>();
+                foreach (var i in ListPhone)
+                {
+                    storyList = StoryNumbersFirst.Where(x => x.Phone == i).Concat(storyList).ToList();
+                }
+                return storyList.Where(x =>
+                    x.Name == "Исходящее соединение на мобильную сеть" ||
+                    x.Name == "Исходящее междугородное соединение в пределах области" ||
+                    x.Name == "Исходящее междугородное соединение в пределах республики").ToList(); ;
+            }
+            return StoryNumbersFirst.Where(x =>
+                x.Name == "Исходящее соединение на мобильную сеть" ||
+                x.Name == "Исходящее междугородное соединение в пределах области" ||
+                x.Name == "Исходящее междугородное соединение в пределах республики").ToList();
+        }
+
+        /// <summary>
+        /// Формирование отчёта
+        /// </summary>
+        /// <param name="ListPhone">Список номеров</param>
+        /// <param name="StoryNumbersFirst">Первоначальный список</param>
+        /// <returns></returns>
+        public static List<ReportNumber> ReportNumbers(IEnumerable<string> ListPhone, IEnumerable<StoryNumber> StoryNumbersFirst)
+        {
+            List<ReportNumber> report = new List<ReportNumber>();
+            var yearList = StoryNumbersFirst
+                    .GroupBy(x => Convert.ToDateTime(x.DateStartTime).Year)
+                    .ToList();
+            foreach (var year in yearList)
+            {
+                var monthList = StoryNumbersFirst
+                    .Where(x => Convert.ToDateTime(x.DateStartTime).Year == year.Key)
+                    .GroupBy(x => Convert.ToDateTime(x.DateStartTime).Month)
+                    .ToList();
+                foreach (var month in monthList)
+                {
+                    List<Phone> xPhones = new List<Phone>();
+                    foreach (var phone in ListPhone)
+                    {
+                        var directionList = StoryNumbersFirst
+                            .Where(x => x.Phone == phone)
+                            .Where(x => x.Direction != "")
+                            .Where(x => Convert.ToDateTime(x.DateStartTime).Year == year.Key && Convert.ToDateTime(x.DateStartTime).Month == month.Key)
+                            .GroupBy(x => x.Direction)
+                            .ToList();
+                        List<NameList> nameList = new List<NameList>();
+                        foreach (var direction in directionList)
+                        {
+                            var dayList = StoryNumbersFirst
+                                .Where(x => x.Phone == phone)
+                                .Where(x => Convert.ToDateTime(x.DateStartTime).Year == year.Key && Convert.ToDateTime(x.DateStartTime).Month == month.Key)
+                                .Where(x => x.Direction == direction.Key && x.Direction != "")
+                                .GroupBy(x => Convert.ToDateTime(x.DateStartTime).Day)
+                                .ToList();
+                            NameList xNameList = new NameList
+                            {
+                                Name = MyFunc.Direction(direction.Key),
+                                Dates = MyFunc.LineDate(dayList)
+                            };
+                            nameList.Add(xNameList);
+                        }
+                        Phone xPhone = new Phone
+                        {
+                            NamePhone = MyFunc.Phone(phone),
+                            NameList = nameList
+                        };
+                        xPhones.Add(xPhone);
+                    }
+                    ReportNumber xReportNumber = new ReportNumber
+                    {
+                        MonthYear = MyFunc.MonthYear(month.Key, year.Key),
+                        Phones = xPhones
+                    };
+                    report.Add(xReportNumber);
+                }
+            }
+            return report;
         }
 
 

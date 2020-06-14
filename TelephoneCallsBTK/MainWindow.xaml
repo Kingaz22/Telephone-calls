@@ -5,43 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TelephoneCallsBTK"
         mc:Ignorable="d"
-        Title="Телефонные переговоры" Height="700" Width="650">
+        Title="Телефонные переговоры" Height="700" Width="650" MinWidth="600" MinHeight="400">
     <Grid>
+        <ToolBar Height="35" VerticalAlignment="Top">
+            <Button ToolTip="Загрузить данные"  Command="{Binding OpenCommand}">
+                <Image Source="Icons/plus.png" />
+            </Button>
+            <Separator />
+            <Button ToolTip="Очистить данные" Command="{Binding ClearData}">
+                <Image Source="Icons/minus.png" />
+            </Button>
+            <Separator />
+            <Button ToolTip="Экспорт отчёта" Command="{Binding ExportData}">
+                <Image Source="Icons/export.png" />
+            </Button>
+            <Separator />
+            <Button ToolTip="Открыть инструкцию" Command="{Binding OpenHelp}">
+                <Image Source="Icons/help.png" />
+            </Button>
+            <Button ToolTip="О программе" Command="{Binding OpenAbout}">
+                <Image Source="Icons/information-variant.png" />
+            </Button>
+        </ToolBar>
 
-        <Menu Height="25" VerticalAlignment="Top" >
-            <MenuItem Header="Файл">
-                <MenuItem Header="Загрузить данные" Command="{Binding OpenCommand}" >
-                    <MenuItem.Icon>
-                        <Image Source="Icons/plus.png"></Image>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Очистить данные" Command="{Binding ClearData}">
-                    <MenuItem.Icon>
-                        <Image Source="Icons/minus.png"></Image>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Экспорт отчёта" Command="{Binding ExportData}">
-                    <MenuItem.Icon>
-                        <Image Source="Icons/export.png"></Image>
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
-            <MenuItem Header="Справка" >
-                <MenuItem Header="Открыть справку" Command="{Binding OpenHelp}" >
-                    <MenuItem.Icon>
-                        <Image Source="Icons/help.png"></Image>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="О программе" Command="{Binding OpenAbout}" >
-                    <MenuItem.Icon>
-                        <Image Source="Icons/information-variant.png"></Image>
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
-        </Menu>
-
-
-        <TabControl Margin="0,20,0,0">
+        <TabControl Margin="0,35,0,0">
             <TabItem Header="Главная">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -49,36 +36,34 @@
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition></ColumnDefinition>
-                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition Width="200"></ColumnDefinition>
                         <ColumnDefinition></ColumnDefinition>
                     </Grid.ColumnDefinitions>
 
                     <StackPanel  Grid.Column="0" Grid.Row="0">
-
                         <Button Content="Сформировать отчет"   Command="{Binding ReportCommand}" Margin="5" />
-                        
                         <StackPanel Orientation="Horizontal" >
-                            <Label Content="Загруженно звонков: " HorizontalAlignment="Left" />
+                            <Label Content="Количество вызовов: " HorizontalAlignment="Left" />
                             <Label Content="{Binding CountNumbers}" HorizontalAlignment="Left" />
                         </StackPanel>
-                        
+                        <TextBox Name="TextBoxPhone" Margin="5" />
+                        <Button Content="Добавить номер" Margin="5,2" Command="{Binding AddPhone}" CommandParameter="{Binding ElementName=TextBoxPhone}" />
+                        <Button Content="Удалить номер" Margin="5,2" Command="{Binding DeletePhone}" CommandParameter="{Binding ElementName=ListBoxPhone}" />
                     </StackPanel>
 
-                    <StackPanel  Grid.Column="1" Grid.Row="0">
-                        <TextBox Name="TextBoxPhone" Margin="5" />
-                        <Button Content="Добавить номер" Margin="5" Command="{Binding AddPhone}" CommandParameter="{Binding ElementName=TextBoxPhone}" />
-                        <Button Content="Удалить номер" Margin="5" Command="{Binding DeletePhone}" CommandParameter="{Binding ElementName=ListBoxPhone}" />
-                       
-                    </StackPanel>
-                    <ListBox Name="ListBoxPhone" ItemsSource="{Binding ListPhone}" Grid.Column="2" Grid.Row="0"
-                             SelectionMode="Multiple" >
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" />
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <GroupBox Header="Номера телефонов" Grid.Column="1" Grid.Row="0" Width="165" HorizontalAlignment="Left" Margin="0,0,0,5">
+                        <ListBox Name="ListBoxPhone" ItemsSource="{Binding ListPhone}"
+                                 SelectionMode="Multiple" Width="150" HorizontalAlignment="Left">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </GroupBox>
+
+
+                    
                     <ListBox ItemsSource="{Binding ReportNumbers}" VirtualizingPanel.ScrollUnit="Pixel" 
                              Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3">
                         <ListBox.ItemTemplate>
@@ -111,9 +96,6 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-
-
-
                 </Grid>
             </TabItem>
             <TabItem Header="Таблица вызавов">
