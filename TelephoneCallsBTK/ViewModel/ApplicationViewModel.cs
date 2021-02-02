@@ -153,7 +153,10 @@ namespace TelephoneCallsBTK.ViewModel
                     StoryNumbersFirst = fileService.Open(dialogService.FilePath)
                         .Union(StoryNumbersFirst, new StoryNumberClassComparer())
                         .Where(x => x.Phone != "Телефон")
-                        .Where(x => x.Name != "Итого сумма начислений по абонентскому номеру:");
+                        .Where(x => x.Name != "Итого сумма начислений по абонентскому номеру:").Where(x =>
+                            x.Name == "Исходящее соединение на мобильную сеть" ||
+                            x.Name == "Исходящее междугородное соединение в пределах области" ||
+                            x.Name == "Исходящее междугородное соединение в пределах республики");
                     
                     StoryNumbers = MyFunc.FirstSort(ListPhone, StoryNumbersFirst);
 

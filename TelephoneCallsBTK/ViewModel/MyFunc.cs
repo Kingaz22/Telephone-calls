@@ -125,27 +125,15 @@ namespace TelephoneCallsBTK.ViewModel
         /// <summary>
         /// Начальная фильтрация
         /// </summary>
-        /// <param name="ListPhone">Список номеров</param>
+        /// <param name="listPhone">Список номеров</param>
         /// <param name="StoryNumbersFirst">Первоначальный список</param>
         /// <returns></returns>
-        public static IEnumerable<StoryNumber> FirstSort(IEnumerable<string> ListPhone, IEnumerable<StoryNumber> StoryNumbersFirst)
+        public static IEnumerable<StoryNumber> FirstSort(IEnumerable<string> listPhone, IEnumerable<StoryNumber> StoryNumbersFirst)
         {
-            if (ListPhone.Count() != 0)
-            {
-                List<StoryNumber> storyList = new List<StoryNumber>();
-                foreach (var i in ListPhone)
-                {
-                    storyList = StoryNumbersFirst.Where(x => x.Phone == i).Concat(storyList).ToList();
-                }
-                return storyList.Where(x =>
-                    x.Name == "Исходящее соединение на мобильную сеть" ||
-                    x.Name == "Исходящее междугородное соединение в пределах области" ||
-                    x.Name == "Исходящее междугородное соединение в пределах республики").ToList(); ;
-            }
-            return StoryNumbersFirst.Where(x =>
-                x.Name == "Исходящее соединение на мобильную сеть" ||
-                x.Name == "Исходящее междугородное соединение в пределах области" ||
-                x.Name == "Исходящее междугородное соединение в пределах республики").ToList();
+            var phone = listPhone.ToList();
+            if (!phone.Any()) return StoryNumbersFirst.ToList();
+            var storyList = new List<StoryNumber>();
+            return phone.Aggregate(storyList, (current, i) => StoryNumbersFirst.Where(x => x.Phone == i).Concat(current).ToList());
         }
 
         /// <summary>
